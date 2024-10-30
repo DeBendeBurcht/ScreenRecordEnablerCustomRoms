@@ -73,7 +73,7 @@ REPLACE="
 #
 # ! DO NOT use any Magisk internal paths as those are NOT public API.
 # ! DO NOT use other functions in util_functions.sh as they are NOT public API.
-# ! Non public APIs are not guranteed to maintain compatibility between releases.
+# ! Non public APIs are not guaranteed to maintain compatibility between releases.
 #
 # Available variables:
 #
@@ -87,7 +87,7 @@ REPLACE="
 # IS64BIT (bool): true if $ARCH is either arm64 or x64
 # API (int): the API level (Android version) of the device
 #
-# Availible functions:
+# Available functions:
 #
 # ui_print <msg>
 #     print <msg> to console
@@ -123,29 +123,77 @@ REPLACE="
 
 print_modname() {
   ui_print "*******************************"
-  ui_print "   HEVC+SM GCam for OP3/3T/5   "
+  ui_print "   Screen Recorder 720p Fix   "
   ui_print "*******************************"
+}
+
+# Function to backup the original file
+backup_file() {
+  ORIGINAL_FILE="$1"
+  BACKUP_FILE="${ORIGINAL_FILE}.bak"
+  
+  # Check if the original file exists
+  if [ -f "$ORIGINAL_FILE" ]; then
+    ui_print "- Backing up original file to $BACKUP_FILE"
+    cp "$ORIGINAL_FILE" "$BACKUP_FILE"
+  else
+    ui_print "- Original file not found, skipping backup"
+  fi
 }
 
 # Copy/extract your module files into $MODPATH in on_install.
 
 on_install() {
-  # The following is the default implementation: extract $ZIPFILE/system to $MODPATH
-  # Extend/change the logic to whatever you want
   ui_print "- Extracting module files"
   unzip -o "$ZIPFILE" 'system/*' -d $MODPATH >&2
+
+  # Define the original file paths you wish to back up
+  ORIGINAL_FILES=(
+    "/system/path/to/original/file"  # Replace this with actual paths
+    # Add more files as needed
+  )
+
+  # Backup original files
+  for FILE in "${ORIGINAL_FILES[@]}"; do
+    backup_file "$FILE"
+  done
+  
   custom_variables
-  device_check
   api_check
+}
+
+# Restore the original file from backup
+restore_file() {
+  BACKUP_FILE="$1"
+  
+  if [ -f "$BACKUP_FILE" ]; then
+    ORIGINAL_FILE="${BACKUP_FILE%.bak}"  # Remove the .bak extension to get the original filename
+    ui_print "- Restoring original file from $BACKUP_FILE"
+    mv "$BACKUP_FILE" "$ORIGINAL_FILE"
+  else
+    ui_print "- Backup file not found, skipping restore"
+  fi
+}
+
+# Function called when the module is uninstalled
+on_uninstall() {
+  # Define the backup files to restore
+  BACKUP_FILES=(
+    "/system/path/to/original/file.bak"  # Replace this with actual paths
+    # Add more backup files as needed
+  )
+
+  # Restore original files from backup
+  for BACKUP in "${BACKUP_FILES[@]}"; do
+    restore_file "$BACKUP"
+  done
 }
 
 # Only some special files require specific permissions
 # This function will be called after on_install is done
-# The default permissions should be good enough for most cases
-
 set_permissions() {
-  # The following is the default rule, DO NOT remove
   set_perm_recursive $MODPATH 0 0 0755 0644
+}
 
   # Here are some examples:
   # set_perm_recursive  $MODPATH/system/lib       0     0       0755      0644
@@ -157,16 +205,10 @@ set_permissions() {
 # You can add more functions to assist your custom script code
 
 custom_variables() {
-if [ -f vendor/build.prop ]; then BUILDS="/system/build.prop vendor/build.prop"; else BUILDS="/system/build.prop"; fi
-  OP3=$(grep -E "ro.product.device=oneplus3|ro.product.device=OnePlus3|ro.product.device=OnePlus3T" $BUILDS)
-  OP5=$(grep -E "ro.product.device=oneplus5|ro.product.device=OnePlus5" $BUILDS)
-}
-
-device_check() {
-  if [ -n "$OP3" ] || [ -n "$OP5" ]; then
-    break
-  else
-    abort "Your device is not a OnePlus 3/3T/5"
+  if [ -f vendor/build.prop ]; then 
+    BUILDS="/system/build.prop vendor/build.prop"
+  else 
+    BUILDS="/system/build.prop"
   fi
 }
 
@@ -174,7 +216,8 @@ device_check() {
 
 api_check() {
   if [ "$API" -eq 25 ] || [ "$API" -eq 24 ]; then
-    break
+    # Valid API levels for installation
+    return
   else
     abort "This module is only for devices running Nougat"
   fi
