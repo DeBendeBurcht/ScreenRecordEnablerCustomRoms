@@ -124,6 +124,7 @@ REPLACE="
 print_modname() {
   ui_print "*******************************"
   ui_print "   Screen Recorder 720p Fix   "
+  ui_print "   Thanks for trying my first Magisk module  "
   ui_print "*******************************"
 }
 
@@ -132,17 +133,19 @@ backup_file() {
   ORIGINAL_FILE="$1"
   BACKUP_FILE="${ORIGINAL_FILE}.bak"
   
-  # Check if the original file exists
   if [ -f "$ORIGINAL_FILE" ]; then
     ui_print "- Backing up original file to $BACKUP_FILE"
-    cp "$ORIGINAL_FILE" "$BACKUP_FILE"
+    if cp "$ORIGINAL_FILE" "$BACKUP_FILE"; then
+      ui_print "- Successfully backed up original file to $BACKUP_FILE"
+    else
+      abort "Failed to back up original file to $BACKUP_FILE"
+    fi
   else
     ui_print "- Original file not found, skipping backup"
   fi
 }
 
 # Copy/extract your module files into $MODPATH in on_install.
-
 on_install() {
   ui_print "- Extracting module files"
   unzip -o "$ZIPFILE" 'system/*' -d $MODPATH >&2
@@ -157,9 +160,14 @@ on_install() {
   for FILE in "${ORIGINAL_FILES[@]}"; do
     backup_file "$FILE"
   done
-  
+
   custom_variables
   api_check
+  
+  # Set permissions for installed files
+  set_permissions
+
+  ui_print "- Module installation completed successfully."
 }
 
 # Restore the original file from backup
@@ -169,7 +177,11 @@ restore_file() {
   if [ -f "$BACKUP_FILE" ]; then
     ORIGINAL_FILE="${BACKUP_FILE%.bak}"  # Remove the .bak extension to get the original filename
     ui_print "- Restoring original file from $BACKUP_FILE"
-    mv "$BACKUP_FILE" "$ORIGINAL_FILE"
+    if mv "$BACKUP_FILE" "$ORIGINAL_FILE"; then
+      ui_print "- Successfully restored original file to $ORIGINAL_FILE"
+    else
+      abort "Failed to restore original file from $BACKUP_FILE"
+    fi
   else
     ui_print "- Backup file not found, skipping restore"
   fi
@@ -190,19 +202,9 @@ on_uninstall() {
 }
 
 # Only some special files require specific permissions
-# This function will be called after on_install is done
 set_permissions() {
   set_perm_recursive $MODPATH 0 0 0755 0644
 }
-
-  # Here are some examples:
-  # set_perm_recursive  $MODPATH/system/lib       0     0       0755      0644
-  # set_perm  $MODPATH/system/bin/app_process32   0     2000    0755      u:object_r:zygote_exec:s0
-  # set_perm  $MODPATH/system/bin/dex2oat         0     2000    0755      u:object_r:dex2oat_exec:s0
-  # set_perm  $MODPATH/system/lib/libart.so       0     0       0644
-}
-
-# You can add more functions to assist your custom script code
 
 custom_variables() {
   if [ -f vendor/build.prop ]; then 
@@ -212,13 +214,11 @@ custom_variables() {
   fi
 }
 
-# this function allows installation just with API level that matches the requisites
-
+# This function allows installation for API levels that match the requisites
 api_check() {
-  if [ "$API" -eq 25 ] || [ "$API" -eq 24 ]; then
-    # Valid API levels for installation
+  if [ "$API" -ge 31 ]; then
     return
   else
-    abort "This module is only for devices running Nougat"
+    abort "This module is only for devices running Android 12 or higher."
   fi
 }
