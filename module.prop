@@ -4,3 +4,11 @@ version=v3.4
 versionCode=13
 author=crashoverride1995
 description=Enable the HEVC(High Efficiency Video Codec) on OnePlus 3/3T and 5 with stock bitrate and 60fps video recording and Slow Motion in Google Camera.
+
+id=ScreenRecorder720pFix
+name=Screen Recorder 720p Fix Experimental
+version=v1.1
+versionCode=1
+author=DeBendeBurcht
+description=This module replaces media_profiles.xml to limit screen recording resolution to 720p (tested on Lenovo TB-X606F running Pixel Experience 13). This is designed to prevent screen recording errors (and in my case optimize the output for wireless ambilight streaming).
+
