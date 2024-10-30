@@ -121,6 +121,7 @@ REPLACE="
 
 # Set what you want to display when installing your module
 
+# Set what you want to display when installing your module
 print_modname() {
   ui_print "*******************************"
   ui_print "   Screen Recorder 720p Fix   "
@@ -152,14 +153,29 @@ on_install() {
 
   # Define the original file paths you wish to back up
   ORIGINAL_FILES=(
-    "/system/path/to/original/file"  # Replace this with actual paths
-    # Add more files as needed
+    "/system/etc/media_profiles.xml"        # The original XML file to be backed up
+    "/system/etc/media_profiles_V1_0.dtd"   # The original DTD file to be backed up
   )
 
   # Backup original files
   for FILE in "${ORIGINAL_FILES[@]}"; do
     backup_file "$FILE"
   done
+
+  # Replace the original files with the new ones from the module
+  ui_print "- Replacing original media_profiles.xml with new file"
+  if cp "$MODPATH/system/etc/media_profiles.xml" "/system/etc/media_profiles.xml"; then
+    ui_print "- Successfully replaced the original media_profiles.xml."
+  else
+    abort "Failed to replace the original media_profiles.xml."
+  fi
+
+  ui_print "- Replacing original media_profiles_V1_0.dtd with new file"
+  if cp "$MODPATH/system/etc/media_profiles_V1_0.dtd" "/system/etc/media_profiles_V1_0.dtd"; then
+    ui_print "- Successfully replaced the original media_profiles_V1_0.dtd."
+  else
+    abort "Failed to replace the original media_profiles_V1_0.dtd."
+  fi
 
   custom_variables
   api_check
@@ -191,8 +207,8 @@ restore_file() {
 on_uninstall() {
   # Define the backup files to restore
   BACKUP_FILES=(
-    "/system/path/to/original/file.bak"  # Replace this with actual paths
-    # Add more backup files as needed
+    "/system/etc/media_profiles.xml.bak"           # The backup XML file to restore
+    "/system/etc/media_profiles_V1_0.dtd.bak"      # The backup DTD file to restore
   )
 
   # Restore original files from backup
@@ -222,3 +238,4 @@ api_check() {
     abort "This module is only for devices running Android 12 or higher."
   fi
 }
+
