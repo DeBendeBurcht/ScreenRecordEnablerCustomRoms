@@ -16,6 +16,8 @@ v1 - Initial Fork.
 
 ## Usage Instructions
 
+Download: Download this repo as a zip.
+
 Installation: Install the module via Magisk Manager.
 
 Reboot: Reboot your device after installation.
