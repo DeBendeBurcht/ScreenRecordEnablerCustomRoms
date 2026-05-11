@@ -1,6 +1,6 @@
 
 ##### WARNING
-####EXPERIMENTAL AS OF NOW. TRYING TO IMPLEMENT A SOLUTION AS WRITTEN BELOW.
+#### EXPERIMENTAL AS OF NOW. TRYING TO IMPLEMENT A SOLUTION AS WRITTEN BELOW.
 
 ## Description
 This module is specifically designed for my Lenovo TB-X606F running the latest release of Pixel Experience 13 and TWRP 3.7FA. It replaces the media_profiles.xml located at /system/etc/ to prevent an error that prevents me from screen recording.
